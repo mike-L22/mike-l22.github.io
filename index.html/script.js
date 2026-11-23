@@ -1,154 +1,140 @@
 document.addEventListener("DOMContentLoaded", () => {
-  /* 1. Dark / Light Ledger Theme Toggle */
+  /* 1. Light / Dark Theme Toggle */
   const root = document.documentElement;
-  const themeBtn = document.getElementById("theme-toggle");
-  const themeIcon = document.getElementById("theme-icon");
+  const themeBtns = [document.getElementById("theme-toggle"), document.getElementById("theme-toggle-desktop")];
   const themeMeta = document.getElementById("theme-meta");
+  const themeLabel = document.getElementById("theme-label");
 
   function applyTheme(theme) {
     root.setAttribute("data-theme", theme);
     localStorage.setItem("map-portfolio-theme", theme);
-    if (themeIcon) themeIcon.textContent = theme === "dark" ? "☀️" : "🌙";
-    if (themeMeta) themeMeta.setAttribute("content", theme === "dark" ? "#0b0f17" : "#f6f3ec");
+    if (themeMeta) themeMeta.setAttribute("content", theme === "dark" ? "#16161a" : "#faf8f3");
+    if (themeLabel) themeLabel.textContent = theme === "dark" ? "Paper light mode" : "Dark ink mode";
   }
 
-  const savedTheme = localStorage.getItem("map-portfolio-theme") || "dark";
-  applyTheme(savedTheme);
+  applyTheme(localStorage.getItem("map-portfolio-theme") || "light");
 
-  themeBtn?.addEventListener("click", () => {
-    const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-    applyTheme(next);
-    showToast(`Switched to ${next === "dark" ? "Midnight Bento" : "Ledger Paper"} mode`);
+  themeBtns.forEach((btn) => {
+    btn?.addEventListener("click", () => {
+      const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      applyTheme(next);
+      showToast(`Switched to ${next === "dark" ? "Dark Ink" : "Archival Paper"} mode`);
+    });
   });
 
-  /* 2. Mobile Navigation Drawer */
-  const menuBtn = document.getElementById("mobile-menu-btn");
-  const navLinks = document.getElementById("nav-links");
+  /* 2. Mobile Nav Toggle */
+  const menuBtn = document.getElementById("menu-btn");
+  const mobileNav = document.getElementById("mobile-nav");
 
   menuBtn?.addEventListener("click", () => {
-    const isOpen = navLinks.classList.toggle("is-open");
+    const isOpen = mobileNav.classList.toggle("is-open");
     menuBtn.setAttribute("aria-expanded", String(isOpen));
     menuBtn.textContent = isOpen ? "✕" : "☰";
   });
 
-  navLinks?.querySelectorAll("a, button").forEach((el) => {
-    el.addEventListener("click", () => {
-      if (el.id === "mobile-qr-trigger") return;
-      navLinks.classList.remove("is-open");
-      menuBtn?.setAttribute("aria-expanded", "false");
-      if (menuBtn) menuBtn.textContent = "☰";
+  mobileNav?.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => {
+      mobileNav.classList.remove("is-open");
+      menuBtn.setAttribute("aria-expanded", "false");
+      menuBtn.textContent = "☰";
     });
   });
 
-  /* 3. Cursor-Tracking Spotlight Glow on Bento Cards */
-  document.querySelectorAll(".spotlight-card").forEach((card) => {
-    card.addEventListener("mousemove", (e) => {
-      const rect = card.getBoundingClientRect();
-      card.style.setProperty("--mouse-x", `${e.clientX - rect.left}px`);
-      card.style.setProperty("--mouse-y", `${e.clientY - rect.top}px`);
-    });
-  });
-
-  /* 4. Interactive Skills Matrix Filtering */
-  const skillPills = document.querySelectorAll("#skill-matrix .skill-pill");
-  const filterableCards = document.querySelectorAll("[data-tags]");
-  let activeTag = null;
-
-  skillPills.forEach((pill) => {
-    pill.addEventListener("click", () => {
-      const tag = pill.dataset.tag;
-      if (activeTag === tag) {
-        activeTag = null;
-        skillPills.forEach((p) => p.classList.remove("is-active"));
-        filterableCards.forEach((c) => {
-          c.classList.remove("is-highlighted", "is-dimmed");
-        });
-        showToast("Cleared skill filter");
-        return;
-      }
-
-      activeTag = tag;
-      skillPills.forEach((p) => p.classList.toggle("is-active", p.dataset.tag === tag));
-
-      filterableCards.forEach((card) => {
-        const tags = (card.dataset.tags || "").split(" ");
-        const matches = tags.includes(tag);
-        card.classList.toggle("is-highlighted", matches);
-        card.classList.toggle("is-dimmed", !matches);
-      });
-
-      showToast(`Highlighting projects & experience related to "${pill.textContent}"`);
-    });
-  });
-
-  /* 5. Interactive "How I Build Solutions" Step Selector */
-  const steps = document.querySelectorAll(".process-step");
-  steps.forEach((step) => {
-    step.addEventListener("click", () => {
-      steps.forEach((s) => s.classList.remove("is-active"));
-      step.classList.add("is-active");
-    });
-  });
-
-  /* 6. Live Quezon City (Asia/Manila) Clock */
-  const clockEl = document.getElementById("ph-clock");
+  /* 3. Live Quezon City (Asia/Manila) Clock */
+  const clockEl = document.getElementById("mnl-clock");
   function updateClock() {
     if (!clockEl) return;
     clockEl.textContent = new Date().toLocaleTimeString("en-US", {
       timeZone: "Asia/Manila",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
     });
   }
   updateClock();
-  setInterval(updateClock, 1000);
+  setInterval(updateClock, 15000);
 
-  /* 7. Toast Notification Helper */
-  function showToast(text) {
-    let toast = document.getElementById("bento-toast");
-    if (!toast) {
-      toast = document.createElement("div");
-      toast.id = "bento-toast";
-      toast.className = "toast";
-      document.body.appendChild(toast);
-    }
-    toast.textContent = `✓ ${text}`;
-    toast.classList.add("is-visible");
-    clearTimeout(toast._timer);
-    toast._timer = setTimeout(() => toast.classList.remove("is-visible"), 2500);
+  /* 4. Reading Progress Bar */
+  const progressBar = document.getElementById("progress");
+  function updateProgress() {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    if (progressBar) progressBar.style.width = `${Math.min(100, Math.max(0, pct))}%`;
   }
+  updateProgress();
+  window.addEventListener("scroll", updateProgress, { passive: true });
+  window.addEventListener("resize", updateProgress);
 
-  /* 8. Project Filtering & Live Search */
-  const filterTabs = document.querySelectorAll(".filter-tab");
-  const projectTiles = document.querySelectorAll(".project-tile");
-  const searchInput = document.getElementById("project-search");
-  let activeFilter = "all";
+  /* 5. Scroll-Spy for Rail + Mobile Nav */
+  const sections = document.querySelectorAll(".section[id]");
+  const navLinks = document.querySelectorAll("[data-nav]");
 
-  function filterProjects() {
-    const query = (searchInput?.value || "").toLowerCase().trim();
-    projectTiles.forEach((tile) => {
-      const statusOk = activeFilter === "all" || tile.dataset.status === activeFilter;
-      const textOk = !query || tile.textContent.toLowerCase().includes(query);
-      tile.classList.toggle("is-hidden", !(statusOk && textOk));
+  function setActiveNav(id) {
+    navLinks.forEach((link) => {
+      link.classList.toggle("is-active", link.dataset.nav === id);
     });
   }
 
-  filterTabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
-      activeFilter = tab.dataset.filter;
-      filterTabs.forEach((t) => {
-        const isCurrent = t === tab;
-        t.classList.toggle("is-active", isCurrent);
-        t.setAttribute("aria-pressed", String(isCurrent));
-      });
-      filterProjects();
+  if ("IntersectionObserver" in window) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) setActiveNav(entry.target.id);
+        });
+      },
+      { rootMargin: "-40% 0px -50% 0px", threshold: 0 }
+    );
+    sections.forEach((section) => observer.observe(section));
+  }
+
+  /* 6. "How I Build" Process Step Switcher */
+  const stepDetails = {
+    1: "Identify scattered notes, bottlenecks, and the fields that actually need to be tracked, before opening any tool.",
+    2: "Design simple, related tables for costs, schedules, or records so every entry connects cleanly to the next.",
+    3: "Ship a fast, focused screen that makes daily tracking obvious — nothing to learn, nothing extra to click through.",
+  };
+  const stepButtons = document.querySelectorAll(".process-step");
+  const stepDetail = document.getElementById("process-detail");
+
+  stepButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      stepButtons.forEach((b) => b.classList.remove("is-active"));
+      btn.classList.add("is-active");
+      if (stepDetail) stepDetail.textContent = stepDetails[btn.dataset.step] || "";
     });
   });
 
-  searchInput?.addEventListener("input", filterProjects);
+  /* 7. Project Status Filtering */
+  const filterChips = document.querySelectorAll(".filter-chip");
+  const projects = document.querySelectorAll(".project");
 
-  /* 9. Multi-Screenshot Gallery Lightbox */
+  filterChips.forEach((chip) => {
+    chip.addEventListener("click", () => {
+      const target = chip.dataset.filter;
+      filterChips.forEach((c) => c.classList.toggle("is-active", c === chip));
+      projects.forEach((proj) => {
+        const show = target === "all" || proj.dataset.status === target;
+        proj.classList.toggle("is-hidden", !show);
+      });
+    });
+  });
+
+  /* 8. Toast Helper */
+  function showToast(text) {
+    let toast = document.getElementById("map-toast");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "map-toast";
+      toast.className = "toast";
+      document.body.appendChild(toast);
+    }
+    toast.textContent = text;
+    toast.classList.add("is-visible");
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => toast.classList.remove("is-visible"), 2200);
+  }
+
+  /* 9. Lightbox Gallery */
   const lightbox = document.getElementById("lightbox");
   const lightboxTitle = document.getElementById("lightbox-title");
   const lightboxImg = document.getElementById("lightbox-img");
@@ -161,19 +147,18 @@ document.addEventListener("DOMContentLoaded", () => {
   let galleryCaptions = [];
   let galleryIndex = 0;
 
-  function renderGallerySlide() {
+  function renderSlide() {
     if (!galleryImages.length) return;
     lightboxImg.src = galleryImages[galleryIndex];
     lightboxImg.alt = galleryCaptions[galleryIndex] || "Project screenshot";
     lightboxCaption.textContent = galleryCaptions[galleryIndex] || "";
     counterEl.textContent = `${galleryIndex + 1} / ${galleryImages.length}`;
-
     const single = galleryImages.length <= 1;
     prevBtn.classList.toggle("is-hidden", single);
     nextBtn.classList.toggle("is-hidden", single);
   }
 
-  document.querySelectorAll(".media-btn").forEach((btn) => {
+  document.querySelectorAll(".project-media-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       const img = btn.querySelector("img");
       if (!img || img.dataset.missing === "true") return;
@@ -181,21 +166,21 @@ document.addEventListener("DOMContentLoaded", () => {
       galleryImages = (btn.dataset.gallery || img.src).split(",").map((s) => s.trim()).filter(Boolean);
       galleryCaptions = (btn.dataset.captions || "").split("|").map((s) => s.trim());
       galleryIndex = 0;
-      lightboxTitle.textContent = (btn.dataset.title || "APP SCREENSHOT").toUpperCase();
+      lightboxTitle.textContent = btn.dataset.title || "Screenshot";
 
-      renderGallerySlide();
+      renderSlide();
       lightbox.showModal();
     });
   });
 
   prevBtn?.addEventListener("click", () => {
     galleryIndex = (galleryIndex - 1 + galleryImages.length) % galleryImages.length;
-    renderGallerySlide();
+    renderSlide();
   });
 
   nextBtn?.addEventListener("click", () => {
     galleryIndex = (galleryIndex + 1) % galleryImages.length;
-    renderGallerySlide();
+    renderSlide();
   });
 
   document.getElementById("lightbox-close")?.addEventListener("click", () => lightbox.close());
@@ -203,27 +188,28 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.target === lightbox) lightbox.close();
   });
 
-  /* Graceful Error Alert if an Image Path Doesn't Match */
-  document.querySelectorAll(".project-img").forEach((img) => {
+  /* 10. Graceful Placeholder for Missing Screenshots */
+  document.querySelectorAll(".project-media-btn img").forEach((img) => {
     img.addEventListener("error", () => {
       img.dataset.missing = "true";
       const src = img.getAttribute("src") || "images/screenshot.png";
-      const btn = img.closest(".mac-frame");
+      const btn = img.closest(".project-media-btn");
       if (!btn) return;
       btn.style.cursor = "default";
       btn.innerHTML = `
-        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:220px;padding:20px;background:var(--bg);color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:0.76rem;text-align:center;">
-          <strong style="color:var(--text);margin-bottom:6px;">Missing: ${src}</strong>
-          <span>Check exact filename &amp; .png/.jpg extension in images/</span>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;aspect-ratio:16/10;padding:20px;color:var(--muted);font-size:0.82rem;text-align:center;">
+          <strong style="color:var(--ink);margin-bottom:6px;">${src}</strong>
+          <span>Drop this screenshot into the images folder</span>
         </div>
       `;
     });
   });
 
-  /* 10. Direct Message Modal & Web3Forms */
+  /* 11. Contact Modal */
   const msgModal = document.getElementById("message-modal");
-  document.getElementById("open-message-modal")?.addEventListener("click", () => msgModal.showModal());
-  document.getElementById("contact-open-modal")?.addEventListener("click", () => msgModal.showModal());
+  [document.getElementById("open-message-modal"), document.getElementById("contact-open-modal")]
+    .forEach((btn) => btn?.addEventListener("click", () => msgModal.showModal()));
+
   document.getElementById("msg-modal-close")?.addEventListener("click", () => msgModal.close());
   msgModal?.addEventListener("click", (e) => {
     if (e.target === msgModal) msgModal.close();
@@ -240,111 +226,93 @@ document.addEventListener("DOMContentLoaded", () => {
     const msg = document.getElementById("sender-msg").value;
 
     if (!accessKey || accessKey === "YOUR_WEB3FORMS_ACCESS_KEY") {
-      window.location.href = `mailto:michaelangelolatypascual@gmail.com?subject=Portfolio Inquiry from ${encodeURIComponent(name)} (${encodeURIComponent(email)})&body=${encodeURIComponent(msg)}`;
+      window.location.href = `mailto:michaelangelolatypascual@gmail.com?subject=${encodeURIComponent(
+        "Portfolio inquiry from " + name
+      )}&body=${encodeURIComponent(msg + "\n\n— " + name + " (" + email + ")")}`;
       msgModal.close();
-      showToast("Opening email app...");
+      showToast("Opening your email app…");
       return;
     }
 
     submitBtn.disabled = true;
-    submitBtn.textContent = "Sending...";
-
+    submitBtn.textContent = "Sending…";
     try {
-      const formData = new FormData(msgForm);
       const res = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
-        body: formData,
+        body: new FormData(msgForm),
       });
       const data = await res.json();
-
       if (data.success) {
         msgForm.reset();
         msgModal.close();
-        showToast("Message sent directly to Michael!");
+        showToast("Message sent.");
       } else {
         throw new Error("Submission failed");
       }
     } catch {
       showToast("Could not send online — opening mail app");
-      window.location.href = `mailto:michaelangelolatypascual@gmail.com?subject=Portfolio Inquiry from ${encodeURIComponent(name)}&body=${encodeURIComponent(msg)}`;
+      window.location.href = `mailto:michaelangelolatypascual@gmail.com?subject=${encodeURIComponent(
+        "Portfolio inquiry from " + name
+      )}&body=${encodeURIComponent(msg)}`;
     } finally {
       submitBtn.disabled = false;
-      submitBtn.textContent = "Send Message →";
+      submitBtn.textContent = "Send message";
     }
   });
 
-  /* 11. Real Scannable vCard & QR Code Modal */
-  const qrModal = document.getElementById("qr-modal");
-  const qrContainer = document.getElementById("qrcode-container");
-  const openQrTriggers = [
-    document.getElementById("qr-modal-trigger"),
-    document.getElementById("qr-tile-trigger"),
-    document.getElementById("mobile-qr-trigger"),
-  ];
-
-  const vcardData = [
-    "BEGIN:VCARD",
-    "VERSION:3.0",
-    "FN:Michael Angelo Pascual",
-    "N:Pascual;Michael;Angelo;;",
-    "TITLE:Administrative Officer & Finance Assistant",
-    "ORG:INCITEGov Inc.",
-    "EMAIL;TYPE=WORK:michaelangelolatypascual@gmail.com",
-    "URL:https://mike-l22.github.io/",
-    "ADR;TYPE=WORK:;;Quezon City;Metro Manila;;;Philippines",
-    "END:VCARD",
-  ].join("\r\n");
-
-  if (qrContainer && typeof QRCode !== "undefined") {
-    qrContainer.innerHTML = "";
-    new QRCode(qrContainer, {
-      text: vcardData,
-      width: 180,
-      height: 180,
-      colorDark: "#0b0f17",
-      colorLight: "#ffffff",
-      correctLevel: QRCode.CorrectLevel.M,
-    });
-  }
-
-  openQrTriggers.forEach((btn) => {
-    btn?.addEventListener("click", () => {
-      navLinks?.classList.remove("is-open");
-      qrModal?.showModal();
-    });
-  });
-
-  document.getElementById("qr-modal-close")?.addEventListener("click", () => qrModal?.close());
-  qrModal?.addEventListener("click", (e) => {
-    if (e.target === qrModal) qrModal.close();
-  });
-
-  const vcardBlob = new Blob([vcardData], { type: "text/vcard;charset=utf-8" });
-  const vcardUrl = URL.createObjectURL(vcardBlob);
-  const downloadVcardBtn = document.getElementById("download-vcard-btn");
-  if (downloadVcardBtn) {
-    downloadVcardBtn.href = vcardUrl;
-    downloadVcardBtn.download = "Michael_Angelo_Pascual.vcf";
-  }
-
-  /* 12. Copy Email & Keyboard Shortcuts */
+  /* 12. Copy Email */
   const copyBtn = document.getElementById("copy-email");
   copyBtn?.addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(copyBtn.dataset.email);
-      showToast("Email copied to clipboard");
+      showToast("Email copied");
     } catch {
-      showToast("Unable to copy automatically");
+      showToast("Couldn't copy automatically");
     }
   });
 
-  document.addEventListener("keydown", (e) => {
-    const tag = document.activeElement?.tagName;
-    if (e.key === "/" && tag !== "INPUT" && tag !== "TEXTAREA") {
-      e.preventDefault();
-      searchInput?.focus();
-      document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });
+  /* 13. Business Card — dynamic vCard + QR */
+  const vcard = [
+    "BEGIN:VCARD",
+    "VERSION:3.0",
+    "N:Pascual;Michael Angelo;;;",
+    "FN:Michael Angelo Pascual",
+    "ORG:INCITEGov Inc.",
+    "TITLE:Administrative Officer & Finance Assistant",
+    "EMAIL;TYPE=INTERNET:michaelangelolatypascual@gmail.com",
+    "ADR;TYPE=WORK:;;Quezon City;;;Philippines",
+    "URL;TYPE=Portfolio:https://mike-l22.github.io/",
+    "URL;TYPE=LinkedIn:https://www.linkedin.com/in/michael-angelo-pascual-4b5041184/",
+    "URL;TYPE=GitHub:https://github.com/mike-L22",
+    "NOTE:From Michael's portfolio business card",
+    "END:VCARD",
+  ].join("\r\n");
+
+  const vcardLink = document.getElementById("vcard-download");
+  if (vcardLink) {
+    const blob = new Blob([vcard], { type: "text/vcard" });
+    vcardLink.href = URL.createObjectURL(blob);
+    vcardLink.setAttribute("download", "michael-angelo-pascual.vcf");
+  }
+
+  const qrEl = document.getElementById("qr-code");
+  if (qrEl) {
+    if (typeof QRCode !== "undefined") {
+      new QRCode(qrEl, {
+        text: vcard,
+        width: 112,
+        height: 112,
+        colorDark: "#19191d",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M,
+      });
+    } else {
+      qrEl.innerHTML = '<span class="qr-fallback">QR unavailable offline — use the download link</span>';
     }
+  }
+
+  /* 14. Keyboard nav for lightbox */
+  document.addEventListener("keydown", (e) => {
     if (lightbox?.open) {
       if (e.key === "ArrowRight") nextBtn?.click();
       if (e.key === "ArrowLeft") prevBtn?.click();
