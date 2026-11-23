@@ -1,15 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <!-- Ledger Card Base (--ink) -->
-  <rect x="2" y="2" width="60" height="60" rx="6" fill="#1b2430" />
+  <!-- Archival Paper Background & Subtle Border -->
+  <rect x="2" y="2" width="60" height="60" rx="12" fill="#faf8f3" stroke="#cfc8b8" stroke-width="2.5" />
   
-  <!-- Top Ledger Accent Bar (--teal) -->
-  <path d="M8 2h48a6 6 0 0 1 6 6v4H2V8a6 6 0 0 1 6-6z" fill="#1f5f5b" />
+  <!-- Inner Editorial Hairline Frame -->
+  <rect x="6" y="6" width="52" height="52" rx="8" fill="none" stroke="#e4dfd3" stroke-width="1" />
   
-  <!-- Subtle Inner Hairline Border -->
-  <rect x="6" y="16" width="52" height="42" rx="2" fill="none" stroke="rgba(255, 255, 255, 0.16)" stroke-width="1.5" />
-  
-  <!-- MAP Monogram (--surface) & Period Accent (--teal-soft) -->
-  <text x="32" y="43" text-anchor="middle" font-family="Georgia, &#39;Times New Roman&#39;, serif" font-size="18.5" font-weight="700" letter-spacing="0.5" fill="#fffdf8">
-    MAP<tspan fill="#bcd4d0">.</tspan>
-  </text>
+  <!-- MAP Monogram in Fountain-Pen Indigo -->
+  <text x="32" y="39.5" font-family="Georgia, &#39;Times New Roman&#39;, serif" font-size="21" font-weight="700" letter-spacing="0.5" fill="#2d3a8c" text-anchor="middle">MAP</text>
 </svg>
